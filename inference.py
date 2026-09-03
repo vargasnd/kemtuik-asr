@@ -1,24 +1,16 @@
 import torch
 import librosa
 
-from transformers import (
-    WhisperProcessor,
-    WhisperForConditionalGeneration
-)
+from transformers import WhisperProcessor, WhisperForConditionalGeneration
 
-
-MODEL_DIR = "./model"
+MODEL_DIR = "vargasnd/kemtuik-whisper-small"
 
 
 print("Loading model...")
 
-processor = WhisperProcessor.from_pretrained(
-    MODEL_DIR
-)
+processor = WhisperProcessor.from_pretrained(MODEL_DIR)
 
-model = WhisperForConditionalGeneration.from_pretrained(
-    MODEL_DIR
-)
+model = WhisperForConditionalGeneration.from_pretrained(MODEL_DIR)
 
 # Jangan paksa bahasa Indonesia.
 # Kemtuik bukan bahasa Indonesia.
@@ -36,17 +28,11 @@ print(f"Model loaded on: {device}")
 def transcribe_audio(audio_path):
 
     # Load audio menjadi mono 16 kHz
-    audio, sr = librosa.load(
-        audio_path,
-        sr=16000,
-        mono=True
-    )
+    audio, sr = librosa.load(audio_path, sr=16000, mono=True)
 
     # Extract Whisper features
     input_features = processor.feature_extractor(
-        audio,
-        sampling_rate=16000,
-        return_tensors="pt"
+        audio, sampling_rate=16000, return_tensors="pt"
     ).input_features
 
     input_features = input_features.to(device)
@@ -54,29 +40,19 @@ def transcribe_audio(audio_path):
     # Generate transcription
     with torch.no_grad():
 
-        predicted_ids = model.generate(
-            input_features,
-            max_length=225
-        )
+        predicted_ids = model.generate(input_features, max_length=225)
 
     # Convert token menjadi text
-    transcription = processor.batch_decode(
-        predicted_ids,
-        skip_special_tokens=True
-    )[0]
+    transcription = processor.batch_decode(predicted_ids, skip_special_tokens=True)[0]
 
     return transcription
 
 
 if __name__ == "__main__":
 
-    audio_path = input(
-        "Masukkan path audio: "
-    )
+    audio_path = input("Masukkan path audio: ")
 
-    result = transcribe_audio(
-        audio_path
-    )
+    result = transcribe_audio(audio_path)
 
     print("\nHasil Transkripsi:")
     print(result)
